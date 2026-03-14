@@ -167,10 +167,11 @@ Python
 Core libraries
 
 ```
-google-generativeai
+google-genai
 qdrant-client
 fastapi
 pydantic
+pydantic-settings
 numpy
 uvicorn
 ```
