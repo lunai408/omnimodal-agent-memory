@@ -32,6 +32,7 @@ notebook = [
     "jupyter>=1.1.1",
     "matplotlib>=3.10.8",
     "scikit-learn>=1.8.0",
+    "six>=1.17.0",
 ]
 
 [build-system]

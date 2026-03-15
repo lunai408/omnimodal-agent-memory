@@ -1,10 +1,21 @@
 #!/usr/bin/env python3
 """Ingest all files in the data/ directory into Qdrant."""
 
+import json
 from pathlib import Path
 
 from app.config import get_settings
 from app.ingest import ensure_collection, get_qdrant_client, ingest_directory
+
+
+def _load_manifest(data_dir: Path) -> dict[str, str]:
+    """Load file descriptions from data/manifest.json if it exists."""
+    manifest_path = Path("manifest.json")
+    if manifest_path.exists():
+        descriptions: dict[str, str] = json.loads(manifest_path.read_text())
+        print(f"Loaded {len(descriptions)} descriptions from {manifest_path}")
+        return descriptions
+    return {}
 
 
 def main() -> None:
@@ -20,8 +31,12 @@ def main() -> None:
     client = get_qdrant_client(settings)
     ensure_collection(client, settings=settings)
 
+    descriptions = _load_manifest(data_dir)
+
     print(f"Ingesting files from {data_dir}/\n")
-    items = ingest_directory(data_dir, client=client, settings=settings)
+    items = ingest_directory(
+        data_dir, descriptions=descriptions, client=client, settings=settings
+    )
 
     print(f"\nIngested {len(items)} items into collection '{settings.collection_name}'")
 

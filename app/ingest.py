@@ -127,10 +127,20 @@ def ingest_file(
 def ingest_directory(
     directory: Path,
     *,
+    descriptions: dict[str, str] | None = None,
     client: QdrantClient | None = None,
     settings: Settings | None = None,
 ) -> list[MemoryItem]:
-    """Ingest all supported files from a directory tree."""
+    """Ingest all supported files from a directory tree.
+
+    Args:
+        directory: Root directory to scan for files.
+        descriptions: Optional mapping of relative file paths to text
+            descriptions.  When provided, each description is fused into
+            the embedding for richer semantic signal.
+        client: Pre-configured Qdrant client (created from *settings* if None).
+        settings: Application settings.
+    """
     settings = settings or get_settings()
     directory = Path(directory).resolve()
 
@@ -146,9 +156,13 @@ def ingest_directory(
     )
 
     for i, file_path in enumerate(files, 1):
+        rel_path = str(file_path.relative_to(directory))
+        description = (descriptions or {}).get(rel_path, "")
         print(f"  [{i}/{len(files)}] {file_path.name} ...", end=" ", flush=True)
         try:
-            item = ingest_file(file_path, client=client, settings=settings)
+            item = ingest_file(
+                file_path, description=description, client=client, settings=settings
+            )
             items.append(item)
             print(f"OK ({item.modality.value})")
         except Exception as e:
